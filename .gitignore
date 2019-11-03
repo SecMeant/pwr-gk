@@ -1,2 +1,5 @@
 debug/
 compile_commands.json
+*.aux
+*.log
+*.pdf

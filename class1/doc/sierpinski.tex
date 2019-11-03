@@ -1,0 +1,68 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{babel}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{ragged2e}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=4
+}
+
+\title{Grafika Komputerowa}
+\author{Patryk Wlazłyń}
+
+\begin{document}
+
+\maketitle
+
+\section{Wprowadzenie - rysowanie kwadratu}
+\justify
+Pierwszym zadaniem do wykonania na laboratoriach było narysowanie kwadratu używając tylko trójkątów.
+Zadanie trywialne, sprowadzało się do narysowania dwóch trójkątów prostokątnych ze wspólną krawędzią w miejscu
+ich przeciwprostokątnej. Żeby bezpośrednio oddać intencje programisty i nie musieć rysować dwóch trójkątów
+można użyć funkcji glBegin(GL\_TRIANGLE\_STRIP). Dodatkowo została wprowadzona struktura opisująca kwadrat.
+Jej definicja znajduje się poniżej.
+\begin{lstlisting}
+struct Square
+{
+  GLfloat midx, midy, rad;
+  Color color;
+};
+\end{lstlisting}
+Struktura przechowuje informację o położeniu środka kwadratu oraz jego "promieniu".
+Autor jest świadomy nie poprawnego nazewnictwa zmiennej która przechowuje połowę wartości długości boku kwadratu,
+jednakże została ona wybrana ze względu na dobrze kojarzącą się nazwę z przechowywaną wartością.
+Poniżej zamieszczona została funkcja rysująca kwadrat.
+\begin{lstlisting}
+void DrawSquare(Square sq)
+{
+  glColor3f(sq.color.r, sq.color.g, sq.color.b);
+  glBegin(GL_TRIANGLE_STRIP);
+    glVertex2f(sq.midx - sq.rad, sq.midy - sq.rad);
+    glVertex2f(sq.midx - sq.rad, sq.midy + sq.rad);
+    glVertex2f(sq.midx + sq.rad, sq.midy - sq.rad);
+    glVertex2f(sq.midx + sq.rad, sq.midy + sq.rad);
+  glEnd();
+}
+\end{lstlisting}
+
+\end{document}
