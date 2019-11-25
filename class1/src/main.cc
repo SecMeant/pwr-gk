@@ -186,8 +186,8 @@ void RenderScene(void)
 
   Square sq{0.0f, 0.0f, 80.0f, bgcolor};
   //DrawSquare(sq);
-  //Sierpinski(sq, 0.01f);
-  SierpinskiIter(sq, 5);
+  Sierpinski(sq, 0.01f);
+  //SierpinskiIter(sq, 5);
 
   glFlush();
   // Przekazanie poleceń rysujących do wykonania
