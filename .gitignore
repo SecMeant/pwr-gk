@@ -1,4 +1,5 @@
 debug/
+**/build/
 compile_commands.json
 *.aux
 *.log
