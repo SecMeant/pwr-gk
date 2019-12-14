@@ -1,10 +1,3 @@
-/*************************************************************************************/
-
-//  Szkielet programu do tworzenia modelu sceny 3-D z wizualizacją osi
-//  układu współrzędnych dla rzutowania perspektywicznego
-
-/*************************************************************************************/
-
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <cmath>
@@ -12,7 +5,7 @@
 
 typedef float point3[3];
 
-static GLfloat viewer[] = {0.0, 0.0, 12.0};
+static GLfloat viewer[] = { 0.0, 0.0, 12.0 };
 static GLfloat thetax = 0.0;
 static GLfloat thetay = 0.0;
 static GLfloat pix2anglex;
@@ -38,25 +31,209 @@ static GLfloat beta = 0;
 static GLfloat lookpoint_x = 0;
 static GLfloat lookpoint_y = 0;
 static GLfloat lookpoint_z = 0;
-// inicjalizacja położenia obserwatora
 
-/*************************************************************************************/
+constexpr float N = 512.0f;
+constexpr size_t uN = static_cast<size_t>(N);
 
-// Funkcja rysująca osie układu wspó?rz?dnych
+point3 eggpoints[uN][uN];
+point3 eggnorms[uN][uN] {};
+point3 eggcolo[uN][uN];
 
-void Axes(void) {
+GLfloat light_position[] = { 0.0, 0.0, 10.0, 1.0 };
+GLfloat light_position2[] = { 10.0, 0.0, 5.0, 1.0 };
 
-  point3 x_min = {-5.0, 0.0, 0.0};
-  point3 x_max = {5.0, 0.0, 0.0};
-  // pocz?tek i koniec obrazu osi x
+GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
 
-  point3 y_min = {0.0, -5.0, 0.0};
-  point3 y_max = {0.0, 5.0, 0.0};
-  // pocz?tek i koniec obrazu osi y
+GLfloat mat_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
 
-  point3 z_min = {0.0, 0.0, -5.0};
-  point3 z_max = {0.0, 0.0, 5.0};
-  //  pocz?tek i koniec obrazu osi y
+GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+
+GLfloat mat_shininess = { 20.0 };
+
+GLfloat light_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
+GLfloat light_ambient2[] = { 0.1, 0.1, 0.1, 1.0 };
+
+GLfloat light_diffuse[] = { 1.0, 0.0, 1.0, 1.0 };
+GLfloat light_diffuse2[] = { 1.0, 1.0, 0.0, 1.0 };
+
+GLfloat light_specular[] = { 1.0, 0.0, 0.0, 1.0 };
+GLfloat light_specular2[] = { 0.0, 0.0, 1.0, 1.0 };
+
+GLfloat att_constant = { 1.0 };
+
+GLfloat att_linear = { 0.05 };
+
+GLfloat att_quadratic = { 0.001 };
+
+struct Color
+{
+  GLfloat r, g, b;
+};
+
+constexpr GLfloat RAND_MAXf = (double)RAND_MAX;
+
+constexpr float
+egg_x(float u, float v)
+{
+  return (std::pow(u, 5.0f) * (-90.0f) + std::pow(u, 4.0f) * 225 +
+          std::pow(u, 3.0f) * (-270.0f) + std::pow(u, 2.0f) * 180.0f +
+          u * (-45.0f)) *
+         std::cos(M_PI * v);
+}
+
+constexpr float
+egg_y(float u, [[maybe_unused]] float v)
+{
+  return std::pow(u, 4.0f) * 160 + std::pow(u, 3.0f) * (-320.0f) +
+         std::pow(u, 2.0f) * 160.0f;
+}
+
+constexpr float
+egg_z(float u, float v)
+{
+  return (std::pow(u, 5.0f) * (-90.0f) + std::pow(u, 4.0f) * 225.0f +
+          std::pow(u, 3.0f) * (-270.0f) + std::pow(u, 2.0f) * 180 +
+          u * (-45.0f)) *
+         std::sin(M_PI * v);
+}
+
+constexpr float
+egg_normal_xu(float u, float v)
+{
+
+  return (-450.0f * std::pow(u, 4.0f) + 900.0f * std::pow(u, 3.0f) -
+          810.0f * std::pow(u, 2.0f) + 360.0f * u - 45) *
+         std::cos(M_PI * v);
+}
+
+constexpr float
+egg_normal_xv(float u, float v)
+{
+  return M_PI *
+         (90.0f * std::pow(u, 5.0f) - 225.0f * std::pow(u, 4.0f) +
+          270.0f * std::pow(u, 3.0f) - 180.0f * std::pow(u, 2.0f) + 45.0f * u) *
+         std::sin(M_PI * v);
+}
+
+constexpr float
+egg_normal_yu(float u, float v)
+{
+  return 640.0f * std::pow(u, 3.0f) - 960.0f * std::pow(u, 2.0f) + 320.0f * u;
+}
+
+constexpr float
+egg_normal_yv([[maybe_unused]] float u, [[maybe_unused]] float v)
+{
+  return 0;
+}
+
+constexpr float
+egg_normal_zu(float u, float v)
+{
+  return (-450.0f * std::pow(u, 4.0f) + 900.0f * std::pow(u, 3.0f) -
+          810.0f * std::pow(u, 2.0f) + 360.0f * u - 45) *
+         std::sin(M_PI * v);
+}
+
+constexpr float
+egg_normal_zv(float u, float v)
+{
+  return -M_PI *
+         (90.0f * std::pow(u, 5.0f) - 225.0f * std::pow(u, 4.0f) +
+          270.0f * std::pow(u, 3.0f) - 180.0f * std::pow(u, 2.0f) + 45.0f * u) *
+         std::cos(M_PI * v);
+}
+
+void 
+egg_normal(float norm[3], float u, float v)
+{
+  u /= (N);
+  v /= (N);
+
+  auto xu = egg_normal_xu(u, v);
+  auto xv = egg_normal_xv(u, v);
+  auto yu = egg_normal_yu(u, v);
+  auto yv = egg_normal_yv(u, v);
+  auto zu = egg_normal_zu(u, v);
+  auto zv = egg_normal_zv(u, v);
+
+  norm[0] = yu * zv - zu * yv;
+  norm[1] = zu * xv - xu * zv;
+  norm[2] = xu * yv - yu * xv;
+
+  auto len = std::sqrt(norm[0] * norm[0] + norm[1] * norm[1] + norm[2] * norm[2]);
+
+  if (u == 0 || u == N)
+  {
+    norm[0] = 0;
+    norm[1] = -1;
+    norm[2] = 0;
+  }
+  else if (u < 0.5f)
+  {
+    norm[0] = (yu*zv - zu*yv) / len;
+    norm[1] = (zu*xv - xu*zv) / len;
+    norm[2] = (xu*yv - yu*xv) / len;
+  }
+  else if (u > 0.5f)
+  {
+    norm[0] = -1 * (yu*zv - zu*yv) / len;
+    norm[1] = -1 * (zu*xv - xu*zv) / len;
+    norm[2] = -1 * (xu*yv - yu*xv) / len;
+  }
+  else
+  {
+    norm[0] = 0;
+    norm[1] = 1;
+    norm[2] = 0;
+  }
+
+  fmt::print("Norm: {} {} {}\n", norm[0], norm[1], norm[2]);
+}
+
+void
+init_eggpoints()
+{
+  for (size_t j = 0; j < N; ++j) {
+    for (size_t i = 0; i < N; ++i) {
+      eggpoints[j][i][0] =
+        egg_x(static_cast<float>(j) / (N - 1), static_cast<float>(i) / (N - 1));
+
+      eggpoints[j][i][1] = egg_y(static_cast<float>(j) / (N - 1),
+                                 static_cast<float>(i) / (N - 1)) -
+                           5.0f;
+      eggpoints[j][i][2] =
+        egg_z(static_cast<float>(j) / (N - 1), static_cast<float>(i) / (N - 1));
+    }
+  }
+
+  for (size_t j = 0; j < N; ++j) {
+    for (size_t i = 0; i < N; ++i) {
+      Color c = { 0xd4, 0xaf, 0x37 };
+      eggcolo[j][i][0] = c.r;
+      eggcolo[j][i][1] = c.g;
+      eggcolo[j][i][2] = c.b;
+    }
+  }
+
+  for (size_t j = 0; j < N; ++j) {
+    for (size_t i = 0; i < N; ++i) {
+      egg_normal(eggnorms[j][i], j, i);
+    }
+  }
+}
+
+void
+Axes(void)
+{
+  point3 x_min = { -5.0, 0.0, 0.0 };
+  point3 x_max = { 5.0, 0.0, 0.0 };
+
+  point3 y_min = { 0.0, -5.0, 0.0 };
+  point3 y_max = { 0.0, 5.0, 0.0 };
+
+  point3 z_min = { 0.0, 0.0, -5.0 };
+  point3 z_max = { 0.0, 0.0, 5.0 };
 
   glColor3f(1.0f, 0.0f, 0.0f); // kolor rysowania osi - czerwony
   glBegin(GL_LINES);           // rysowanie osi x
@@ -83,18 +260,42 @@ void Axes(void) {
   glEnd();
 }
 
-/*************************************************************************************/
+void
+draw_egg()
+{
+  glBegin(GL_TRIANGLES);
+  glColor3f(1.0f, 1.0f, 1.0f);
+  for (size_t j = 0; j < N - 1; ++j) {
+    for (size_t i = 0; i < N - 1; ++i) {
+      glNormal3fv(eggnorms[j][i]);
+      glVertex3fv(eggpoints[j][i]);
 
-// Funkcja określająca co ma być rysowane (zawsze wywoływana, gdy trzeba
-// przerysować scenę)
+      glNormal3fv(eggnorms[j][i + 1]);
+      glVertex3fv(eggpoints[j][i + 1]);
 
-void RenderScene(void) {
+      glNormal3fv(eggnorms[j + 1][i]);
+      glVertex3fv(eggpoints[j + 1][i]);
+
+      glNormal3fv(eggnorms[j + 1][i]);
+      glVertex3fv(eggpoints[j + 1][i]);
+
+      glNormal3fv(eggnorms[j + 1][i + 1]);
+      glVertex3fv(eggpoints[j + 1][i + 1]);
+
+      glNormal3fv(eggnorms[j][i + 1]);
+      glVertex3fv(eggpoints[j][i + 1]);
+    }
+  }
+  glEnd();
+}
+
+void
+RenderScene(void)
+{
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  // Czyszczenie okna aktualnym kolorem czyszczącym
 
   glLoadIdentity();
-  // Czyszczenie macierzy bie??cej
 
   auto vec = 1.0;
 
@@ -108,16 +309,20 @@ void RenderScene(void) {
   if (beta <= -(M_PI / 2.0) && beta >= -(M_PI * 1.5))
     vec = -1.0;
 
-  fmt::print("{} {} {} {} | {} {}\n", viewer[0], viewer[1], viewer[2], vec, alpha, beta);
 
-  gluLookAt(viewer[0], viewer[1], viewer[2], lookpoint_x, lookpoint_y, lookpoint_z, 0.0, vec, 0.0);
-  // Zdefiniowanie położenia obserwatora
+  gluLookAt(viewer[0],
+            viewer[1],
+            viewer[2],
+            lookpoint_x,
+            lookpoint_y,
+            lookpoint_z,
+            0.0,
+            vec,
+            0.0);
 
   Axes();
-  // Narysowanie osi przy pomocy funkcji zdefiniowanej powyżej
 
-  if (status == 1)
-  {
+  if (status == 1) {
     thetax += delta_x * pix2anglex;
     thetay += delta_y * pix2angley;
   }
@@ -128,91 +333,24 @@ void RenderScene(void) {
   glTranslatef(offset_x, offset_y, 0.0);
 
   glColor3f(1.0f, 1.0f, 1.0f);
-  // Ustawienie koloru rysowania na biały
 
-  glutSolidTeapot(3.0);
-  // Narysowanie czajnika
+  draw_egg();
 
   glFlush();
-  // Przekazanie poleceń rysujących do wykonania
 
   glutSwapBuffers();
 }
-/*************************************************************************************/
 
-// Funkcja ustalająca stan renderowania
-
-void MyInit(void) {
+void
+MyInit(void)
+{
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-  /*************************************************************************************/
-
-  //  Definicja materiału z jakiego zrobiony jest czajnik
-  //  i definicja źródła światła
-
-  /*************************************************************************************/
-
-
-  /*************************************************************************************/
-  // Definicja materiału z jakiego zrobiony jest czajnik
-  GLfloat mat_ambient[]  = {1.0, 1.0, 1.0, 1.0};
-  // współczynniki ka =[kar,kag,kab] dla światła otoczenia
-
-  GLfloat mat_diffuse[]  = {1.0, 1.0, 1.0, 1.0};
-  // współczynniki kd =[kdr,kdg,kdb] światła rozproszonego
-
-  GLfloat mat_specular[] = {1.0, 1.0, 1.0, 1.0};
-  // współczynniki ks =[ksr,ksg,ksb] dla światła odbitego
-
-  GLfloat mat_shininess  = {20.0};
-  // współczynnik n opisujący połysk powierzchni
-
-  /*************************************************************************************/
-  // Definicja źródła światła
-
-  GLfloat light_position[] = {0.0, 0.0, 10.0, 1.0};
-  // położenie źródła
-
-
-  GLfloat light_ambient[] = {0.1, 0.1, 0.1, 1.0};
-  // składowe intensywności świecenia źródła światła otoczenia
-  // Ia = [Iar,Iag,Iab]
-
-  GLfloat light_diffuse[] = {1.0, 1.0, 1.0, 1.0};
-  // składowe intensywności świecenia źródła światła powodującego
-  // odbicie dyfuzyjne Id = [Idr,Idg,Idb]
-
-  GLfloat light_specular[]= {1.0, 1.0, 1.0, 1.0};
-  // składowe intensywności świecenia źródła światła powodującego
-  // odbicie kierunkowe Is = [Isr,Isg,Isb]
-
-  GLfloat att_constant  = {1.0};
-  // składowa stała ds dla modelu zmian oświetlenia w funkcji
-  // odległości od źródła
-
-  GLfloat att_linear    = {0.05};
-  // składowa liniowa dl dla modelu zmian oświetlenia w funkcji
-  // odległości od źródła
-
-  GLfloat att_quadratic  = {0.001};
-  // składowa kwadratowa dq dla modelu zmian oświetlenia w funkcji
-  // odległości od źródła
-
-  /*************************************************************************************/
-  // Ustawienie parametrów materiału i źródła światła
-
-  /*************************************************************************************/
-  // Ustawienie patrametrów materiału
-
 
   glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
   glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
   glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
   glMaterialf(GL_FRONT, GL_SHININESS, mat_shininess);
-
-  /*************************************************************************************/
-  // Ustawienie parametrów źródła
 
   glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
   glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
@@ -223,69 +361,60 @@ void MyInit(void) {
   glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, att_linear);
   glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, att_quadratic);
 
+  glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient2);
+  glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse2);
+  glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular2);
+  glLightfv(GL_LIGHT1, GL_POSITION, light_position2);
 
-  /*************************************************************************************/
-  // Ustawienie opcji systemu oświetlania sceny
+  glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, att_constant);
+  glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, att_linear);
+  glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, att_quadratic);
 
   glShadeModel(GL_SMOOTH); // właczenie łagodnego cieniowania
   glEnable(GL_LIGHTING);   // właczenie systemu oświetlenia sceny
   glEnable(GL_LIGHT0);     // włączenie źródła o numerze 0
+  //glEnable(GL_LIGHT1);     // włączenie źródła o numerze 0
   glEnable(GL_DEPTH_TEST); // włączenie mechanizmu z-bufora
-
-  /*************************************************************************************/
 }
 
-/*************************************************************************************/
+void
+ChangeSize(GLsizei horizontal, GLsizei vertical)
+{
 
-// Funkcja ma za zadanie utrzymanie stałych proporcji rysowanych
-// w przypadku zmiany rozmiarów okna.
-// Parametry vertical i horizontal (wysokość i szerokość okna) są
-// przekazywane do funkcji za każdym razem gdy zmieni się rozmiar okna.
-
-void ChangeSize(GLsizei horizontal, GLsizei vertical) {
-
-  pix2anglex = 360.0/(float)horizontal;
-  pix2angley = 360.0/(float)vertical;
+  pix2anglex = 360.0 / (float)horizontal;
+  pix2angley = 360.0 / (float)vertical;
 
   glMatrixMode(GL_PROJECTION);
-  // Przełączenie macierzy bieżącej na macierz projekcji
 
   glLoadIdentity();
-  // Czyszcznie macierzy bieżącej
 
   gluPerspective(70, 1.0, 1.0, 30.0);
-  // Ustawienie parametrów dla rzutu perspektywicznego
 
   if (horizontal <= vertical)
     glViewport(0, (vertical - horizontal) / 2, horizontal, horizontal);
 
   else
     glViewport((horizontal - vertical) / 2, 0, vertical, vertical);
-  // Ustawienie wielkości okna okna widoku (viewport) w zależności
-  // relacji pomiędzy wysokością i szerokością okna
 
   glMatrixMode(GL_MODELVIEW);
-  // Przełączenie macierzy bieżącej na macierz widoku modelu
 
   glLoadIdentity();
-  // Czyszczenie macierzy bieżącej
 }
 
-void Mouse (int btn, int state, int x, int y)
+void
+Mouse(int btn, int state, int x, int y)
 {
-  if (btn == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
-  {
+  if (btn == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
     x_pos_old = x;
     y_pos_old = y;
     status = 1;
-  }
-  else
-  {
+  } else {
     status = 0;
   }
 }
 
-void Motion (GLsizei x, GLsizei y)
+void
+Motion(GLsizei x, GLsizei y)
 {
   delta_x = x - x_pos_old;
   x_pos_old = x;
@@ -296,20 +425,13 @@ void Motion (GLsizei x, GLsizei y)
   glutPostRedisplay();
 }
 
-void Keyboard (unsigned char key, int x, int y)
+void
+Keyboard(unsigned char key, int x, int y)
 {
   constexpr double camera_speed = 0.1;
+  constexpr size_t light_speed = 1; // ;]
 
-  switch (key)
-  {
-    case 'i':
-      scale += 0.1;
-      break;
-
-    case 'o':
-      scale -= 0.1;
-      break;
-
+  switch (key) {
     case 'l':
       offset_x += 0.1;
       break;
@@ -346,77 +468,67 @@ void Keyboard (unsigned char key, int x, int y)
         beta = 0;
       break;
 
-    case 'R':
-      R += 0.5;
-      break;
-
-    case 'r':
-      R -= 0.5;
-      break;
-
-    case 'X':
-      lookpoint_x += 0.5;
-      break;
-
-    case 'x':
-      lookpoint_x -= 0.5;
-      break;
-
-    case 'Y':
-      lookpoint_y += 0.5;
-      break;
-
-    case 'y':
-      lookpoint_y -= 0.5;
+    case 'z':
+      light_position[0] -= light_speed;
+      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
       break;
 
     case 'Z':
-      lookpoint_z += 0.5;
+      light_position[0] += light_speed;
+      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
       break;
 
-    case 'z':
-      lookpoint_z -= 0.5;
+    case 'x':
+      light_position[1] -= light_speed;
+      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+      break;
+
+    case 'X':
+      light_position[1] += light_speed;
+      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+      break;
+
+    case 'c':
+      light_position[2] -= light_speed;
+      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+      break;
+
+    case 'C':
+      light_position[2] += light_speed;
+      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
       break;
 
     default:
+      fmt::print("Key {}\n", key);
       break;
   }
 
   RenderScene();
 }
 
-/*************************************************************************************/
-
-// Główny punkt wejścia programu. Program działa w trybie konsoli
-
-int main(int argc, char **argv) {
+int
+main(int argc, char** argv)
+{
 
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
   glutInitWindowSize(300, 300);
-  glutCreateWindow("Rzutowanie perspektywiczne");
+    glutCreateWindow("Lighting");
 
   glutDisplayFunc(RenderScene);
-  // Określenie, że funkcja RenderScene będzie funkcją zwrotną
-  // (callback function).  Będzie ona wywoływana za każdym razem
-  // gdy zajdzie potrzeba przerysowania okna
 
   glutReshapeFunc(ChangeSize);
-  // Dla aktualnego okna ustala funkcję zwrotną odpowiedzialną
-  // za zmiany rozmiaru okna
 
   MyInit();
-  // Funkcja MyInit() (zdefiniowana powyżej) wykonuje wszelkie
-  // inicjalizacje konieczne  przed przystąpieniem do renderowania
 
   glEnable(GL_DEPTH_TEST);
-  // Włączenie mechanizmu usuwania niewidocznych elementów sceny
+
+  init_eggpoints();
 
   glutMouseFunc(Mouse);
   glutMotionFunc(Motion);
   glutKeyboardFunc(Keyboard);
   glutMainLoop();
-  // Funkcja uruchamia szkielet biblioteki GLUT
 }
 
 /*************************************************************************************/
