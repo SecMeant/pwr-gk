@@ -22,6 +22,18 @@ constexpr Color blue{ 0.0f, 0.0f, 1.0f };
 
 constexpr GLfloat RAND_MAXf = (double)RAND_MAX;
 
+GLfloat light_position[] = { 0.0, 0.0, 10.0, 1.0 };
+GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
+GLfloat mat_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+GLfloat mat_shininess = { 20.0 };
+GLfloat light_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
+GLfloat light_diffuse[] = { 1.0, 0.0, 1.0, 1.0 };
+GLfloat light_specular[] = { 1.0, 0.0, 0.0, 1.0 };
+GLfloat att_constant = { 1.0 };
+GLfloat att_linear = { 0.05 };
+GLfloat att_quadratic = { 0.001 };
+
 Color
 RandomColor()
 {
@@ -38,15 +50,15 @@ RenderScene(void)
 
   glBegin(GL_TRIANGLES);
     glNormal3f(0.0f, 0.0f, 1.0f);
-    glTexCoord2f(0.0f, 0.0f);
+    glTexCoord2f(0.25f, 0.25f);
     glVertex2f(0.0f, 0.0f);
 
     glNormal3f(0.0f, 0.0f, 1.0f);
-    glTexCoord2f(0.5f, 1.0f);
+    glTexCoord2f(0.75f, 0.25f);
     glVertex2f(50.0f, 0.0f);
 
     glNormal3f(0.0f, 0.0f, 1.0f);
-    glTexCoord2f(1.0f, 0.0f);
+    glTexCoord2f(0.5f, 0.75f);
     glVertex2f(0.0f, 50.0f);
   glEnd();
 
@@ -165,11 +177,31 @@ MyInit(void)
                pBytes);
 
   free(pBytes);
+
   glEnable(GL_TEXTURE_2D);
   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+  glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+  glMaterialf(GL_FRONT, GL_SHININESS, mat_shininess);
+
+  glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+  glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+  glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+  glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, att_constant);
+  glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, att_linear);
+  glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, att_quadratic);
+
+  glShadeModel(GL_SMOOTH); // właczenie łagodnego cieniowania
+  glEnable(GL_LIGHTING);   // właczenie systemu oświetlenia sceny
+  glEnable(GL_LIGHT0);     // włączenie źródła o numerze 0
+  glEnable(GL_DEPTH_TEST); // włączenie mechanizmu z-bufora
 }
 
 void
