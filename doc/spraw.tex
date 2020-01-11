@@ -196,6 +196,61 @@ Listing opisanych funkcjonalności znajduje się poniżej. Z listingu zostały u
 
 \setcounter{section}{0}
 \section{Opis ćwiczenia}
+Ćwiczenie polegało na przedstawieniu jak realizować interakcję z użytkownikiem przy pomocy sterowania ruchem obiektu i położeniem obserwatora w przestrzeni
+3D za pomocą myszy. Dodatkowo przedstawione zostały sposoby prezentacji obiektów trójwymiarowych w rzucie prostokątnym. Na zajęciach został przedstawiony
+koncept poruszania kamerą. Da się to osiągnąc za pomocą poruszania wszystkimi obiektami zamiast kamerą, co w efekcie da takie same rezultaty. Poruszanie
+obiektami w OpenGL jest relatywnie proste. Wykorzystywane są do tego macierze transfrmacji, ktore ustawia się przed rysowaniem. Dzięki takiemu zabiegowi
+wszystko co bedzięmy rysować, najpierw będzie poddane transformacji. Co oznacza, że same procedury rysowania mogą być takie same, a jedynie ustawia się
+główną funkcję renderującą w odpowiednim kontekście. Należy jednak pamiętać, że modyfikacje macierzy transformacji nie nadpisują dotychczasowych wartości,
+a wykonują mnożenie aktualnej macierzy transformacji przez przekazaną macierz. Co oznacza, że ustawiana transformacja zostanie dołożona do istniejącej.
+Aby zaaplikować tylko jedną z transormacji, należy najpierw wyczyścić stan macierzy transformacji za pomocą glLoadIdentity(), która wczyta macierz
+jednostkową a dopiero później wpisać kolejną. Wszystkie operacje wykonywane były na modelu imbryczka, narysowanego przez funkcję glutWireTeapot();
+
+\section{Transformacje}
+Do kontrolowania zachowania położeniem kamery posłużyły funckje: gluLookAt, glRotatef, glScalef, oraz glTranslatef.
+Które kolejno służą do ustawienia punktu na który skierowana jest kamera, zaaplikowanie transformacji obrotu, zaaplikowanie transformacji skalowania
+oraz zaaplikowania transformacji przesunięcie. Prawie wszystkie parametry wspomnianych funkcji dodatkowo były wywoływane z argumentami, które
+można było modyfikować w trakcie działania programu za pomocą klawiatury w dokładnie ten sam sposób co w poprzednich zadanich.
+Warto jeszcze zauważyć, że kolejność transformacji ma znaczenie, gdyż odpowiada ono mnożeniu przez odpowiednie macierze.
+Wszystkie transformację nakładane są w funkcji RenderScene w sposób w jaki zostało to pokazane na poniższym listingu.
+Zmienna viewer to tablica która przechowuje informację na temat położenia kamery. Używana jest jako argument do funkcji gluLookAt.
+Jej pozycja wyliczana jest na podstawie wzoru, który jako argumenty przyjmuje elewację oraz azymut.
+Oba te parametry podlegają modifykacji przy pomocy klawiatury i myszy, co pozwala na poruszanie kamerą.
+
+\pagebreak
+\lstinputlisting[caption=RenderScene z wykorzystaniem transformacji (symulacja ruchu kamery),language=C++]
+{c3_renderscene.cc}
+
+\pagebreak
+
+\section{Przeciwdziałanie dowracania się obiektu przy dużym kącie obrotu}
+Pozostaje jednak jeden problem do rozwiązania. Gdy obrót kamery ustawimy na zbyt duży kąt tj, od 180 do 270 (mod 360) to renderowany model zaczyna być
+rysowany odwrotnie ("do góry nogami", jeżeli ma to sens dla imbryczka). Powodem tego jest zmiana znaku wektora wskazującego od kamery do obserwowanego
+punktu. Aby temu zapobiec, należy w wspomnianym zakresie, ręcznie zmienic znak poprzed podanie jako argumentu do gluLookAt wartości -1.0 jako 8.
+argumentu. Tak zmodyfikowana funkcja już poprawnie wyświetla modele niezależnie od wartości kątu elewacji i azymutu.
+
+\lstinputlisting[caption=Kontrolowanie parametrów obrotu za pomocą myszy,language=C++]
+{c3_keyboard.cc}
+
+\pagebreak
+
+\section{Zrzuty ekranu aplikacji}
+\begin{center}
+\includegraphics[width=\textwidth=2]{imbryk1}
+\end{center}
+
+\begin{center}
+\includegraphics[width=\textwidth=2]{imbryk2}
+\end{center}
+
+\begin{center}
+\includegraphics[width=\textwidth=2]{imbryk3}
+\end{center}
+
+\begin{center}
+\includegraphics[width=\textwidth=2]{imbryk4}
+\end{center}
+
 
 \end{document}
 
