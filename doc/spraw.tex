@@ -11,7 +11,7 @@
 \usepackage{tabularx}
 \usepackage{float}
 \usepackage{latexsym,amsmath}
-\marginsize{2.5cm}{2.5cm}{3cm}{3cm}
+\marginsize{2.5cm}{2.5cm}{0.5cm}{3cm}
 
 \newcommand{\name}[1]{\sffamily\bfseries\scriptsize #1}
 
@@ -251,6 +251,72 @@ argumentu. Tak zmodyfikowana funkcja już poprawnie wyświetla modele niezależn
 \includegraphics[width=\textwidth=2]{imbryk4}
 \end{center}
 
+\pagebreak
+
+\setcounter{chapter}{4}
+\chapter*{Oświetlanie scen 3-D\begin{flushright} 09.12.2019 \end{flushright}}
+
+\setcounter{section}{0}
+\section{Opis ćwiczenia}
+\par Na tym ćwiczeniu zostały przedstawiene możliwości generowania oświetlenia za pomocą biblioteki OpenGL.
+Wprowadzone zostały funkcje włączania oświetlenia, a także te od nadawania im różnych cech.
+Oświetlenie w rzeczywistości jest bardzo skomplikowanym zjawiskiem i jego pełne symulowanie jest zbyt drogie.
+W tym celu w standardzie OpenGL zdefiniowano trzy cechy jakie symuluje się wprowadzając na scene oświetlenie, które dają relatywnie dobry efekt
+i co najważniejsze - są łatwo osiągalne na współcześnie dostępnym sprzęcie.
+Światło w OpenGL składa się z trzech komponentów - ambient, diffuse i specular, które razem dają model Phonga.
+Komponent ambient opisuje zjawisko polegające na tym, że obiekty w sąsiedztwie dowolnego oświetlenia nigdy nie są kompletnie czarne.
+Ten komponent zatem nadaje odpowiednio przyciemniony kolor danemu obiektowi.
+Komponent diffuse nadaje oświetlenia obiektowi zależnie od tego jak dana jego część jest dla tego źródła "widoczna".
+Nadaje to efekt cieniów w miejscach mniej bezpośrednio nachylonych w kierunku światła.
+Ostatni komponent to sepcular, który wytwarza efekt połysku w miejsach najbardziej skierowanych w strone źródła światła.
+Aby wytworzyć ostateczny efekt, wszystkie te komponenty łączone są w jedno.
+Komponent diffuse oraz specular aby ocenić jak bardzo dany obiekty (a raczej jego fragment) jest nachylony w stronę źródła światła wykorzystują
+wektory normalne tych powierzchni.
+Zadaniem do zrealizowania podczas zajęć było dodanie drugiego źródła światła do sceny, dodanie możliwości poruszania światłem, dodanie możliwości
+zmiany składowych światła, dodanie wspomnianych wektorów normalnych do modelu jajka, oraz, jak się następnie okazało - "naprawa" wektorów normalnych
+dla punktów znajdujących się z tylnej strony jajka (bez tego, tylko połowa jajka była widoczna).
+
+\pagebreak
+\section{Dodanie drugiego źródła światła}
+Dodanie światła do sceny jest trywialne. Wystarczyło powielić komponenty ambient, diffuse i specular, oraz zainicjalizować światło nowymi wartościami.
+Listing kodu realizujący tą funckjonalność został zamieszczony poniżej.
+
+\lstinputlisting[caption=Dodanie dwóch źródeł swiatła,language=C++]
+{c4_secondlight.cc}
+
+\pagebreak
+\section{Dodanie możliwości poruszania światłem}
+Możliwość poruszania świtałem została dodana podobnie do poprzednich zadań. Do funkcji obsługującej wejście klawiatury zostały dołożone odpowiednie
+fragmenty manipulujące komponentami oraz położeniem światła. Listing opisywanego kodu znajduje się poniżej.
+
+\lstinputlisting[caption=Kontrolowanie położenia źródeł swiatła za pomocą klawiatury,language=C++]
+{c4_movelight.cc}
+
+\pagebreak
+\section{Naprawa wektorów normalnych z tyłu jajka}
+Problemem powstałym przy wyliczaniu wektorów normalnych z podanego na zajęciach wzoru, było to, że wektory normalne dla fragmentów z tyłu jajka nadal
+wskazywały ten sam kierunke co wektory normalne, przednie.
+Rozwiązaniem tego problemu było (dla punktów odpowiednio od połowy jajka) zmiana znaku
+otrzymanych wektorów na przeciwne. Listing zawierający kod znajduje się poniżej.
+
+\lstinputlisting[caption=Kontrolowanie położenia źródeł swiatła za pomocą klawiatury,language=C++]
+{c4_norms.cc}
+
+\pagebreak
+\section{Zrzuty ekranu aplikacji}
+\begin{center}
+\includegraphics[scale=2]{egg_light1}
+\end{center}
+
+\pagebreak
+\begin{center}
+\includegraphics[scale=2]{egg_light2}
+\end{center}
+
+\pagebreak
+\begin{center}
+\includegraphics[scale=2]{egg_light3}
+\end{center}
 
 \end{document}
 
