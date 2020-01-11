@@ -1,0 +1,120 @@
+\documentclass[polish,polish,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{babel}
+\usepackage{pslatex}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{anysize}
+\usepackage{pgfgantt}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{latexsym,amsmath}
+\marginsize{2.5cm}{2.5cm}{3cm}{3cm}
+
+
+\newcommand{\name}[1]{\sffamily\bfseries\scriptsize #1}
+
+\newcommand{\frontpage}[8]{
+%% #1 - nazwa kursu
+%% #2 - kierunek 
+%% #3 - termin 
+%% #4 - temat 
+%% #5 - problem
+%% #6 - data
+
+\vspace{2cm}
+
+\begin{tabular}{|p{0.72\textwidth}|p{0.28\textwidth}|}
+\hline
+\multicolumn{2}{|c|}{}\\
+\multicolumn{2}{|c|}{{\LARGE #1}}\\
+\multicolumn{2}{|c|}{}\\
+\hline
+\name{Kierunek} & \name{Termin}\\
+\multicolumn{1}{|c|}{\textit{#2}} & \multicolumn{1}{|c|}{\textit{#3}} \\
+\hline
+\name{Imię i nazwisko} & \name{Prowadzący}\\
+\multicolumn{1}{|c|}{\textit{#4}} & \multicolumn{1}{|c|}{\textit{mgr inż. Szymon Datko}} \\
+\hline
+\end{tabular}
+
+}
+
+\usepackage{listings}
+\usepackage{xcolor} % for setting colors
+
+% set the default code style
+\lstset{ % General setup for the package
+	basicstyle=\small,
+	numbers=left,
+	frame=tb,
+	tabsize=2,
+	columns=fixed,
+	showstringspaces=false,
+	showtabs=false,
+	keepspaces,
+	commentstyle=\color{red},
+	keywordstyle=\color{blue}
+}
+
+\title{Sprawozdanie SPD}
+\begin{document}
+% #1 - nazwa kursu #2 - kierunek  #3 - termin #4 - temat #5 - problem #6 - data
+\frontpage{Grafika komputerowa i komunikacja człowiek-komputer}{Informatyka}{Poniedziałek parzysty 11:00}{Patryk Wlazłyń}
+\pagestyle{empty}
+\newpage
+
+\pagebreak
+
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|>{\centering\arraybackslash}p{0.72\textwidth}|>{\centering\arraybackslash}p{0.28\textwidth}|}
+	\hline
+	Temat ćwiczenia & Data \\
+	\hline
+	OpenGL - podstawy & 28.10.2019 \\
+	\hline
+	\end{tabular}
+\end{table}
+
+\section{Opis ćwiczenia}
+Ćwiczenie polegało na poznaniu elementarnych operacji dostarczanych dzięki standardowi oraz bibliotece graficznej OpenGL. Jako bibliotekę pomocną do 
+tworzenia i zarządzania oknami użyliśmy również biblioteki GLUT (GL Utility Toolkit). Podczas tego ćwiczenia poznaliśmy jak zainicjalizować bibliotekę,
+jakie są różnice między używaniem jej na platformie Windows oraz Linux oraz jak generować obraz za pomocą wbudowanych prymitywów w przestrzeni 2D.
+Naszym głównym zadaniem do wykonania było narysoowanie dywanu Sierpińskiego, zarówno za pomocą algorytmu rekurencyjnego oraz iteracyjnego. Dodatkowo
+miał być on zbudowany z bardzo małych, różnokolorowych kwadratów z drobnymi zniekształceniami.
+
+\subsection{Rozwiązanie rekurencyjne}
+Dywan Sierpińskiego składa się z jednego kwadratu w którym wycinane są dziury w postaci mniejszych kwadratów których bok jest dokładnie 3 razy mniejszy i
+rozstawione symetrycznie po każdej ze stron (lewo, prawo, góra, dół) oraz pomiędzy nimi, w rogach (górny-lewo, górne-prawo, dolne-lewo, dolne-prawo).
+Łatwo zauważyć, że struktura ta powstaje w takim razie w bardzo ścisłym porządku. Ważnym spostrzeżeniem jest też, że wycinania dokonujemy na obszarach
+wielkości dokładnie tej samej co środkowy (głowny) kwadrat, lecz każdy z wyciętych kwadratów jest zwyczajnie 3 razy mniejszy. To pozwala na implementacje
+trywialnego algorytmu rekurencyjnego polegającego na wycięciu głównego kwadratu w środku aktualnego obszaru a następnie wycięcie mniejszych, ale zwyczajnie
+mniejszch, przesuniętych wzgledem głownego o jego szerokość. Taką procedurę wystarczy powrótrzyć dla każdego nowo utworzonego (mniejszego) z kwadratów
+dodając dodatkowo maksymalny poziom zagłębienia i otrzymujemy procedurę rekurencyjną generującą dywan Sierpińskiego.
+
+\subsection{Rozwiązanie iteracyjne}
+Rozwiązanie iteracyjne, najłatwiej jest rozwiązać poprzez spojrzenie na gotowy, wygenerowany dywan Śierpińskiego i zauważenie, że "dziury" konkretnych
+wielkości rozstawione są w równych odstępach od siebie i występują regularnie na całej powierzchni dywanu. Ważną informacją jest to, że wieksze dziury
+wydają się "przykrywać" te mniejsze. Łącząc te dwie informacje otrzymujemy dwie procedury do wykonania, aby narysować dywan. Równomierne pokrycie 
+największego kwadratu dziurami oraz należy zacząć od dziur najmniejszych, tak aby te później rysowane (większe) nadpisały obraz wygenerowany przez
+wcześniejsze (mniejsze).
+
+\subsection{Dodatki}
+Losowanie koloru zostało osiągniete poprzez losowanie trzech składowych koloru za pomocą funkcji rand z biblioteki standardowej języka C.
+Do rysowania kwadratów została użyta funkcja rysująca dwa przystające do siebie trójkąty. Drobne zniekształcenia, wspomniane w opisie, zostały wprowadzone
+poprzez losowanie ich zaraz przed narysowaniem kwadratu - funkcja rysująca kwadrat wprowadza zniekształcenia. Podobnie zostało rozwiązane rysowanie
+kwadratów kolorowych.
+
+\pagebreak
+\section{Implementacja - kod źródłowy}
+\lstinputlisting[caption=Dywan Sierpińskiego,language=C++]
+{class1.cc}
+\pagebreak
+
+\bibliographystyle{abbrv}
+\bibliography{ref}
+\end{document}
+
