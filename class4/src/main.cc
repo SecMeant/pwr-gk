@@ -28,6 +28,14 @@ static GLfloat R = 10.0;
 static GLfloat alpha = 0;
 static GLfloat beta = 0;
 
+static GLfloat Rl1 = 30.0;
+static GLfloat alphal1 = -12.09;
+static GLfloat betal1 = 0.39;
+
+static GLfloat Rl2 = 30.0;
+static GLfloat alphal2 = -3.19;
+static GLfloat betal2 = -5.7;
+
 static GLfloat lookpoint_x = 0;
 static GLfloat lookpoint_y = 0;
 static GLfloat lookpoint_z = 0;
@@ -39,8 +47,8 @@ point3 eggpoints[uN][uN];
 point3 eggnorms[uN][uN] {};
 point3 eggcolo[uN][uN];
 
-GLfloat light_position[] = { 0.0, 0.0, 10.0, 1.0 };
-GLfloat light_position2[] = { 10.0, 0.0, 5.0, 1.0 };
+GLfloat light_position[] = { 3.2, 0.0, 0.5, 1.0 };
+GLfloat light_position2[] = { 3.2, 0.0, -0.5, 1.0 };
 
 GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
 
@@ -50,14 +58,13 @@ GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 
 GLfloat mat_shininess = { 20.0 };
 
-GLfloat light_ambient[] = { 0.5, 0.5, 0.5, 1.0 };
-GLfloat light_ambient2[] = { 0.1, 0.1, 0.1, 1.0 };
+GLfloat light_ambient[] = { 0.2, 0.0, 0.0, 1.0 };
+GLfloat light_diffuse[] = { 3.4, 0.0, 0.0, 1.0 };
+GLfloat light_specular[] = { 15.0, 0.0, 0.0, 1.0 };
 
-GLfloat light_diffuse[] = { 1.0, 0.0, 1.0, 1.0 };
-GLfloat light_diffuse2[] = { 1.0, 1.0, 0.0, 1.0 };
-
-GLfloat light_specular[] = { 1.0, 0.0, 0.0, 1.0 };
-GLfloat light_specular2[] = { 0.0, 0.0, 1.0, 1.0 };
+GLfloat light_ambient2[] = { 0.0, 0.0, 0.2, 1.0 };
+GLfloat light_diffuse2[] = { 0.0, 0.0, 2.8, 1.0 };
+GLfloat light_specular2[] = { 0.0, 0.0, 15.0, 1.0 };
 
 GLfloat att_constant = { 1.0 };
 
@@ -292,7 +299,6 @@ draw_egg()
 void
 RenderScene(void)
 {
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glLoadIdentity();
@@ -303,12 +309,22 @@ RenderScene(void)
   viewer[1] = R * sin(beta) + lookpoint_y;
   viewer[2] = R * sin(alpha) * cos(beta) + lookpoint_z;
 
+  light_position[0] = Rl1 * cos(alphal1) * cos(betal1) + lookpoint_x;
+  light_position[1] = Rl1 * sin(betal1) + lookpoint_y;
+  light_position[2] = Rl1 * sin(alphal1) * cos(betal1) + lookpoint_z;
+
+  light_position2[0] = Rl2 * cos(alphal2) * cos(betal2) + lookpoint_x;
+  light_position2[1] = Rl2 * sin(betal2) + lookpoint_y;
+  light_position2[2] = Rl2 * sin(alphal2) * cos(betal2) + lookpoint_z;
+
   if (beta >= (M_PI / 2.0) && beta <= (M_PI * 1.5))
     vec = -1.0;
 
   if (beta <= -(M_PI / 2.0) && beta >= -(M_PI * 1.5))
     vec = -1.0;
 
+  glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+  glLightfv(GL_LIGHT1, GL_POSITION, light_position2);
 
   gluLookAt(viewer[0],
             viewer[1],
@@ -373,7 +389,7 @@ MyInit(void)
   glShadeModel(GL_SMOOTH); // właczenie łagodnego cieniowania
   glEnable(GL_LIGHTING);   // właczenie systemu oświetlenia sceny
   glEnable(GL_LIGHT0);     // włączenie źródła o numerze 0
-  //glEnable(GL_LIGHT1);     // włączenie źródła o numerze 0
+  glEnable(GL_LIGHT1);     // włączenie źródła o numerze 0
   glEnable(GL_DEPTH_TEST); // włączenie mechanizmu z-bufora
 }
 
@@ -429,7 +445,8 @@ void
 Keyboard(unsigned char key, int x, int y)
 {
   constexpr double camera_speed = 0.1;
-  constexpr size_t light_speed = 1; // ;]
+  constexpr float light_speed = 0.1; // ;]
+  static auto current_light = light_position;
 
   switch (key) {
     case 'l':
@@ -449,53 +466,43 @@ Keyboard(unsigned char key, int x, int y)
       break;
 
     case 'a':
-      alpha += camera_speed;
+      alphal1 += camera_speed;
+      break;
+
+    case 'A':
+      alphal2 += camera_speed;
       break;
 
     case 'f':
-      alpha -= camera_speed;
+      alphal1 -= camera_speed;
+      break;
+
+    case 'F':
+      alphal2 -= camera_speed;
       break;
 
     case 's':
-      beta += camera_speed;
-      if (beta >= 2.0 * M_PI)
-        beta = 0.0;
+      betal1 -= camera_speed;
+      if (betal1 <= -2.0 * M_PI)
+        betal1 = 0;
+      break;
+
+    case 'S':
+      betal2 -= camera_speed;
+      if (betal2 <= -2.0 * M_PI)
+        betal2 = 0;
       break;
 
     case 'd':
-      beta -= camera_speed;
-      if (beta <= -2.0 * M_PI)
-        beta = 0;
+      betal1 += camera_speed;
+      if (betal1 >= 2.0 * M_PI)
+        betal1 = 0.0;
       break;
 
-    case 'z':
-      light_position[0] -= light_speed;
-      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-      break;
-
-    case 'Z':
-      light_position[0] += light_speed;
-      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-      break;
-
-    case 'x':
-      light_position[1] -= light_speed;
-      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-      break;
-
-    case 'X':
-      light_position[1] += light_speed;
-      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-      break;
-
-    case 'c':
-      light_position[2] -= light_speed;
-      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-      break;
-
-    case 'C':
-      light_position[2] += light_speed;
-      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    case 'D':
+      betal2 += camera_speed;
+      if (betal2 >= 2.0 * M_PI)
+        betal2 = 0.0;
       break;
 
     default:
@@ -503,6 +510,8 @@ Keyboard(unsigned char key, int x, int y)
       break;
   }
 
+  fmt::print("Light pos {} {}\n", alphal1, betal1);
+  fmt::print("Light pos {} {}\n", alphal2, betal2);
   RenderScene();
 }
 
