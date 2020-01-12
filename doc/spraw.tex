@@ -13,15 +13,9 @@
 \usepackage{latexsym,amsmath}
 \marginsize{2.5cm}{2.5cm}{0.5cm}{3cm}
 
-\newcommand{\name}[1]{\sffamily\bfseries\scriptsize #1}
+\newcommand{\fname}[1]{\sffamily\bfseries\scriptsize #1}
 
 \newcommand{\frontpage}[8]{
-%% #1 - nazwa kursu
-%% #2 - kierunek 
-%% #3 - termin 
-%% #4 - temat 
-%% #5 - problem
-%% #6 - data
 
 \vspace{2cm}
 
@@ -31,10 +25,10 @@
 \multicolumn{2}{|c|}{{\LARGE #1}}\\
 \multicolumn{2}{|c|}{}\\
 \hline
-\name{Kierunek} & \name{Termin}\\
+\fname{Kierunek} & \fname{Termin}\\
 \multicolumn{1}{|c|}{\textit{#2}} & \multicolumn{1}{|c|}{\textit{#3}} \\
 \hline
-\name{Imię i nazwisko} & \name{Prowadzący}\\
+\fname{Imię i nazwisko} & \fname{Prowadzący}\\
 \multicolumn{1}{|c|}{\textit{#4}} & \multicolumn{1}{|c|}{\textit{mgr inż. Szymon Datko}} \\
 \hline
 \end{tabular}
@@ -316,6 +310,92 @@ otrzymanych wektorów na przeciwne. Listing zawierający kod znajduje się poni�
 \pagebreak
 \begin{center}
 \includegraphics[scale=2]{egg_light3}
+\end{center}
+
+\pagebreak
+
+\setcounter{chapter}{5}
+\chapter*{Teksturowanie powierzchni obiektów\begin{flushright} 09.12.2019 \end{flushright}}
+
+\setcounter{section}{0}
+\section{Opis ćwiczenia}
+Celem ćwiczenia było przedstawienie możliwości teksturowania powierzchni obiektów w bibliotece OpenGL.
+Teksture nakładamy na narysowany trójkąt wybierając trzy punkty na tekstrurze, która zostanie rozciąganieta w taki sposób aby pokryć rysowany trójkąt.
+Po wczytaniu do obrazu w pamieci odwołujemy sie używając współrzędnych znormalizowanych (tj. od 0.0 do 1.0), w obu wymiarach.
+Pierszym z zdań było użycie kodu z poprzednich zadań w celu obrotu rysownego obiektu za pomocą myszy.
+Pierwszym obiektem do narysowania i oteksturowania był płaski trójkąt.
+Drugim obiektem był ostrosłup, którego można narysować za pomocą 6 trójkątow ( 2 w podstawie i 4 na scianach bocznych ).
+Ostatnim obiektem do narysowania i pokrycia teksturą był model jajka z poprzednich zajęć.
+Gotowe tekstury przygotowane były już przez prowadzącego, ale również jako jeden z punktów ćwiczenia było przygotowanie własnej tekstury.
+Wybór padł na obrazek z wizerunkiem fikcyjnej postaci Yui Hirasawa z jednej z Chińskich bajeczek, ze względu na wzbudzanie przez nią skrajnych emocji
+u ludzi ją widzących, oraz, że akurat przypadkiem autor miał już gotową kopię na dysku.
+
+\section{Trójkąt i ostrosłup}
+Rysowanie trójkąta jest trywialnie proste. Wystarczy użyć gotowej funkcji z biblioteki OpenGL do rysowania w trójwymiarze.
+Nałożenie na niego tekstury polega na wybraniu wierzchołka na dwuwymiarowej teksturze zaraz przed rysowaniem każdego wierzchołka trójkąta.
+W ten sposób tekstura zostanie odpowiednio pobrana z zaznaczonego obszaru oraz rozciągnięta na rysowanym trójkącie, tak aby pokryć go całego.
+Rysowanie ostrosłupa nie jest niczym bardziej skomplikowanym. Jedynie należy powielić opisane operacje, tak aby rysowane trójkąty stworzyły ostrosłup.
+Listing kody realizującego tą funkcjonalność znajduje się poniżej.
+
+\lstinputlisting[caption=Rysowanie obiektu oteksturownego trójkąta oraz ostrosłupa,language=C++]
+{c5_tri.cc}
+
+\begin{center}
+\includegraphics[scale=1.5]{textri}
+\end{center}
+
+\begin{center}
+\includegraphics[scale=2]{texpyra}
+\end{center}
+
+\begin{center}
+\includegraphics[scale=2]{texpyra2}
+\end{center}
+
+\begin{center}
+\includegraphics[scale=2]{yuipyra.png}
+\end{center}
+
+\pagebreak
+\section{Jajko}
+Do rysowania jajka z trójkątów został użyty kod z poprzednich zajęć.
+W trakcie realizowania tej częsci zadania autor napotkał kilka trudności.
+Po pierwsze - jajko narysowane za pomocą samodzielnie przygotowanej tekstury wyglądało nieestetycnie.
+Przez to w jaki sposób rysowane jest jajko istnieje zauważalna różnica w odległościach miedzy punktami modelu poziomie oraz w pionie.
+Powodowało to, że tekstura była bardzo spłaszczona, a słodziutki wizerunek Yui, słabo widzoczny.
+Aby rozwiązać ten problem autor postanowił rysować w poziomie co drugi punkt, z szerszymi trójkątami.
+Ta prosta operacja dała bardzo dobre rezultaty.
+Kolejnym problemem okazało się to, że jajko z jednej ze stron wogóle się nie rysuje.
+Jak sie po chwili okazało była to wina face cullingu w OpenGL i tego, że tylnia powierzchnia jajka rysowana była tyłem do obserwatora, przez co nie była
+rysowana na ekranie. Aby sobie z tym poradzić wystarczyło połowe jajka rysować w stronę pierwotnego położenia obserwatora, a drugą skierowaną w kierunku
+przeciwnym. Ostatnim problemem okazała się być odwrócona o 180 stopni tekstura z jednej strony jajka.
+Powodem takiego zachownia był sam sposób w jaki rysowane jest jajko.
+Autor postanowił poradzić sobie z tym problemem rozszerzając własną teksturę o odbicie w poziomie i korzystanie z drugiej połówki tekstury w trakcie
+rysowania. Listing kodu odpowiedzialny za opsiywaną funkcjonalność znajduje się poniżej.
+
+\lstinputlisting[caption=Rysowanie obiektu oteksturownego trójkąta oraz ostrosłupa,language=C++]
+{c5_texegg.cc}
+
+Powielenie tekstury w celu łatwej zmiany orientacji (oczywiście autor nie miał na myśli zmiany orientacji seksulanej poprzez powielenie obrazków z 
+wizerunkiem Yui).
+
+\begin{center}
+\includegraphics[scale=2]{yui}
+\end{center}
+
+\pagebreak
+\section{Zrzuty ekranu aplikacji}
+
+\begin{center}
+\includegraphics[scale=2]{yuiegg1.png}
+\end{center}
+
+\begin{center}
+\includegraphics[scale=2]{yuiegg2.png}
+\end{center}
+
+\begin{center}
+\includegraphics[scale=2]{yuiegg3.png}
 \end{center}
 
 \end{document}
