@@ -1,6 +1,7 @@
 #!/bin/sh
 
 if test "$#" -eq 0; then
+	echo "Error: give me some file to compile."
 	exit 1;
 fi
 
